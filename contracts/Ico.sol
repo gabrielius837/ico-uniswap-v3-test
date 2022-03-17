@@ -45,11 +45,13 @@ contract Ico is Ownable {
         token.mint(msg.sender, amount);
     }
 
-    function resolveLiquidity() external payable onlyUnresolved {
+    function resolveLiquidity() external payable onlyOwner onlyUnresolved {
         liquidityResolved = true;
         uint256 tokenBalance = token.totalSupply();
         token.mint(address(this), tokenBalance);
         token.approve(address(this), tokenBalance);
+        WETH.deposit{ value: balance }();
+        balance = 0;
         WETH.approve(address(this), balance);
         TokenParams memory wethParams = TokenParams(address(WETH), balance, balance * 99 / 100);
         TokenParams memory tokenParams = TokenParams(address(token), tokenBalance, tokenBalance * 99 / 100);
@@ -64,7 +66,7 @@ contract Ico is Ownable {
             token1.balance,
             token0.minBalance,
             token1.minBalance,
-            owner(),
+            address(this),
             // solhint-disable-next-line not-rely-on-time
             block.timestamp + 30
         );
